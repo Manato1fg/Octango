@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Octango</string>
+    <string name="empty_message">まだデータがありません</string>
+    <string name="add">追加する</string>
+    <string name="cancel">キャンセル</string>
+    <string name="notification_title">Octango自動登録</string>
+</resources>

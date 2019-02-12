@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fa_pencil_alt" translatable="false">&#xf303;</string>
+    <string name="fa_trash_alt" translatable="false">&#xf2ed;</string>
+</resources>

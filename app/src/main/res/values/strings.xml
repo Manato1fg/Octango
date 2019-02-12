@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Octango</string>
+    <string name="empty_message">There is no data yet.</string>
+    <string name="add">add</string>
+    <string name="cancel">cancel</string>
+    <string name="notification_title">Octango Manager</string>
+</resources>
