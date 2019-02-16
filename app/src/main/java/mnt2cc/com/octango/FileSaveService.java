@@ -5,9 +5,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Base64;
-import android.widget.LinearLayout;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,12 +21,11 @@ public class FileSaveService extends IntentService {
     public static final String ACTION_REGISTER = "mnt2cc.com.octango.action.REGISTER";
     public static final String ACTION_NOTHING = "mnt2cc.com.octango.action.NOTHING";
     public static final String ACTION_READ = "mnt2cc.com.octango.action.READ";
-    public static final String ACTION_DELETE = "mnt2cc.com.octango.action.READ";
+    public static final String ACTION_DELETE = "mnt2cc.com.octango.action.DELETE";
 
     public static final String EXTRA_SOURCE = "mnt2cc.com.octango.extra.SOURCE_TEXT";
     public static final String EXTRA_TARGET = "mnt2cc.com.octango.extra.TARGET_TEXT";
     public static final String EXTRA_IMAGE = "mnt2cc.com.octango.extra.IMAGE";
-    public static final String EXTRA_VIEW = "mnt2cc.com.octango.extra.VIEW";
     public static final String EXTRA_UUID = "mnt2cc.com.octango.extra.UUID";
 
     public static final String KEY_DATA_FILE = "key.data.file";
@@ -45,15 +44,13 @@ public class FileSaveService extends IntentService {
                 final String source = intent.getStringExtra(FileSaveService.EXTRA_SOURCE);
                 final String target = intent.getStringExtra(FileSaveService.EXTRA_TARGET);
                 final String uuid = UUID.randomUUID().toString();
-                final Bitmap image = (Bitmap) intent.getExtras().get(FileSaveService.EXTRA_IMAGE);
-                this.appendData(source, target, image, uuid);
+                final String image = intent.getStringExtra(FileSaveService.EXTRA_IMAGE);
+                this.appendData(source, target, loadImage(image), uuid);
             } else if (ACTION_NOTHING.equals(action)) {
                 return;
             } else if (ACTION_READ.equals(action)) {
-                Bundle b = intent.getExtras();
-                LinearLayout parent = (LinearLayout) b.get(EXTRA_VIEW);
-                updateUI(parent);
-            } else if (ACTION_READ.equals(action)) {
+                updateUI();
+            } else if (ACTION_DELETE.equals(action)) {
                 final String uuid = intent.getStringExtra(FileSaveService.EXTRA_UUID);
                 this.delete(uuid);
             }
@@ -65,11 +62,12 @@ public class FileSaveService extends IntentService {
             JSONArray jAry = read();
             for(int i = 0; i < jAry.length(); i++){
                 JSONObject jsonObject = jAry.getJSONObject(i);
-                if(jsonObject.getString("uuid").equals(uuid)){
+                if(jsonObject.getString(EXTRA_UUID).equals(uuid)){
                     jAry.remove(i);
                     break;
                 }
             }
+            this.save(jAry);
         }catch (JSONException e){
             e.printStackTrace();
         }
@@ -84,46 +82,60 @@ public class FileSaveService extends IntentService {
 
         try{
             JSONArray jAry = read();
-            JSONObject jObj = new JSONObject();
-            jObj.put("UUID", uuid);
-            jObj.put("source", source);
-            jObj.put("target", target);
+            JSONObject jObj = new JSONObject()
+                    .put(EXTRA_SOURCE, source)
+                    .put(EXTRA_TARGET, target)
+                    .put(EXTRA_UUID, uuid)
+                    .put(EXTRA_IMAGE, base64encode(bitmap));
 
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-
-            jObj.put("bitmap", Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT));
-
-            jAry.put(jObj);
-
+            jAry = jAry.put(jObj);
             this.save(jAry);
         }catch (JSONException e){
             e.printStackTrace();
         }
     }
 
-    private Bitmap loadImage(String base64encoded){
-        byte[] bytes = Base64.decode(base64encoded, Base64.DEFAULT);
+    public static String base64encode(Bitmap bitmap){
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+        String encoded = Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.DEFAULT);
+        return encoded;
+    }
+
+    public static Bitmap loadImage(String encoded){
+        byte[] bytes = Base64.decode(encoded, Base64.DEFAULT);
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
     }
 
-    private void updateUI(LinearLayout parent){
+    private void updateUI(){
         try{
             JSONArray jAry = read();
-            OctangoCardView v;
-            String source, target, uuid;
-            Bitmap bitmap;
+            if (jAry.length() == 0){
+                Intent intent = new Intent().setAction(MainActivity.EmptyReceiver.ACTION);
+                LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(intent);
+            }
+            String source, target, uuid, encoded;
             for(int i = 0; i < jAry.length(); i++){
                 JSONObject jObj = jAry.getJSONObject(i);
-                source = jObj.getString("source");
-                target = jObj.getString("target");
-                uuid = jObj.getString("UUID");
-                bitmap = this.loadImage(jObj.getString("bitmap"));
-                v = new OctangoCardView(this, source, target, uuid, bitmap);
-                parent.addView(v);
+                source = jObj.getString(EXTRA_SOURCE);
+                target = jObj.getString(EXTRA_TARGET);
+                uuid = jObj.getString(EXTRA_UUID);
+                encoded = jObj.getString(EXTRA_IMAGE);
+
+                Intent intent = new Intent()
+                        .setAction(MainActivity.AddListReceiver.ACTION)
+                        .putExtra(EXTRA_SOURCE, source)
+                        .putExtra(EXTRA_TARGET, target)
+                        .putExtra(EXTRA_UUID, uuid)
+                        .putExtra(EXTRA_IMAGE, encoded);
+                sendBroadcast(intent);
             }
         }catch (JSONException e){
-            e.printStackTrace();
+            Intent intent = new Intent().setAction(MainActivity.EmptyReceiver.ACTION);
+            sendBroadcast(intent);
+        }finally {
+            Intent intent = new Intent().setAction(MainActivity.FinishReceiver.ACTION);
+            sendBroadcast(intent);
         }
     }
 

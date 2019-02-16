@@ -32,7 +32,6 @@ public class ClipboardListenerService extends Service {
             @Override
             public void onPrimaryClipChanged(){
                 final CharSequence _text = cm.getPrimaryClip().getItemAt(0).getText();
-                Log.d("[Octango]", "Hello1");
                 if(_text == null){
                     return;
                 }

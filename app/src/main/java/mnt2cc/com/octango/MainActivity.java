@@ -1,15 +1,19 @@
 package mnt2cc.com.octango;
 
 import android.app.ActivityManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.app.Activity;
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View;
 import android.graphics.Typeface;
@@ -24,6 +28,10 @@ import com.theartofdev.edmodo.cropper.CropImageView;
 public class MainActivity extends AppCompatActivity {
 
     private Uri mCropImageUri = null;
+
+    private AddListReceiver addListReceiver = new AddListReceiver();
+    private EmptyReceiver emptyReceiver = new EmptyReceiver();
+    private FinishReceiver finishReceiver = new FinishReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,15 +61,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initDesign(){
-        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.content_view);
+        LinearLayout linearLayout = findViewById(R.id.content_view);
         linearLayout.removeViews(0, linearLayout.getChildCount());
-        OctangoCardView v;
-        v = new OctangoCardView(this, "Hello", "こんにちは", "0xffffffff", null);
-        linearLayout.addView(v);
 
-        //font
-        Typeface iconFont = FontAwesome.getTypeface(getApplicationContext(), FontAwesome.FONTAWESOME);
-        FontAwesome.markAsIconContainer(findViewById(R.id.main_activity), iconFont);
+        this.registerReceivers();
+
+        Intent intent = new Intent(this, FileSaveService.class).setAction(FileSaveService.ACTION_READ);
+        this.startService(intent);
+    }
+
+    public void onAddBtnClick(View view){
+
     }
 
 
@@ -108,5 +118,76 @@ public class MainActivity extends AppCompatActivity {
     private void startCropImageActivity(Uri imageUri) {
         CropImage.activity(imageUri)
                 .start(this);
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        this.registerReceivers();
+    }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        this.unregisterReceivers();
+    }
+
+    private void registerReceivers(){
+        this.registerReceiver(addListReceiver, new IntentFilter(AddListReceiver.ACTION));
+        this.registerReceiver(emptyReceiver, new IntentFilter(EmptyReceiver.ACTION));
+        this.registerReceiver(finishReceiver, new IntentFilter(FinishReceiver.ACTION));
+    }
+
+    private void unregisterReceivers(){
+        this.unregisterReceiver(addListReceiver);
+        this.unregisterReceiver(emptyReceiver);
+        this.unregisterReceiver(finishReceiver);
+    }
+
+
+    class AddListReceiver extends BroadcastReceiver{
+
+        public static final String ACTION = "add_list_receiver";
+        @Override
+        public void onReceive(Context ctx, Intent i){
+            LinearLayout linearLayout = findViewById(R.id.content_view);
+
+            String source = i.getStringExtra(FileSaveService.EXTRA_SOURCE);
+            String target = i.getStringExtra(FileSaveService.EXTRA_TARGET);
+            String uuid = i.getStringExtra(FileSaveService.EXTRA_UUID);
+            Bitmap bitmap = FileSaveService.loadImage(i.getStringExtra(FileSaveService.EXTRA_IMAGE));
+
+            OctangoCardView v = new OctangoCardView(ctx, source, target, uuid, bitmap);
+            linearLayout.addView(v);
+        }
+    }
+
+    class EmptyReceiver extends BroadcastReceiver{
+
+        public static final String ACTION = "empty_receiver";
+
+        @Override
+        public void onReceive(Context ctx, Intent i){
+            LinearLayout linearLayout = findViewById(R.id.content_view);
+            TextView textView = new TextView(ctx);
+            textView.setText(getText(R.string.empty_message));
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            textView.setLayoutParams(layoutParams);
+            textView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+            textView.setTextSize(30.0f);
+            linearLayout.addView(textView);
+        }
+    }
+
+    class FinishReceiver extends BroadcastReceiver{
+
+        public static final String ACTION = "finish_receiver";
+
+        @Override
+        public void onReceive(Context ctx, Intent i){
+            //font
+            Typeface iconFont = FontAwesome.getTypeface(getApplicationContext(), FontAwesome.FONTAWESOME);
+            FontAwesome.markAsIconContainer(findViewById(R.id.main_activity), iconFont);
+        }
     }
 }
