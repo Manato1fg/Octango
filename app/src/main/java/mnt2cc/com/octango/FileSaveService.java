@@ -22,6 +22,7 @@ public class FileSaveService extends IntentService {
     public static final String ACTION_NOTHING = "mnt2cc.com.octango.action.NOTHING";
     public static final String ACTION_READ = "mnt2cc.com.octango.action.READ";
     public static final String ACTION_DELETE = "mnt2cc.com.octango.action.DELETE";
+    public static final String ACTION_GET = "mnt2cc.com.octango.action.GET";
 
     public static final String EXTRA_SOURCE = "mnt2cc.com.octango.extra.SOURCE_TEXT";
     public static final String EXTRA_TARGET = "mnt2cc.com.octango.extra.TARGET_TEXT";
@@ -43,9 +44,20 @@ public class FileSaveService extends IntentService {
             if (ACTION_REGISTER.equals(action)) {
                 final String source = intent.getStringExtra(FileSaveService.EXTRA_SOURCE);
                 final String target = intent.getStringExtra(FileSaveService.EXTRA_TARGET);
-                final String uuid = UUID.randomUUID().toString();
+                final String uuid = intent.getStringExtra(FileSaveService.EXTRA_UUID).equals("") ? UUID.randomUUID().toString() : intent.getStringExtra(FileSaveService.EXTRA_UUID);
+                if(!intent.getStringExtra(FileSaveService.EXTRA_UUID).equals("")){
+                    Log.d("[Octango Debugger]", "hi2");
+                    this.delete(uuid);
+                }
+                Log.d("[Octango Debugger]", "hi3");
                 final String image = intent.getStringExtra(FileSaveService.EXTRA_IMAGE);
                 this.appendData(source, target, loadImage(image), uuid);
+                Log.d("[Octango Debugger]", "hi4");
+
+                Intent intent1 = new Intent()
+                        .setAction(CardActivity.FinishSavingReceiver.ACTION);
+
+                sendBroadcast(intent1);
             } else if (ACTION_NOTHING.equals(action)) {
                 return;
             } else if (ACTION_READ.equals(action)) {
@@ -53,8 +65,50 @@ public class FileSaveService extends IntentService {
             } else if (ACTION_DELETE.equals(action)) {
                 final String uuid = intent.getStringExtra(FileSaveService.EXTRA_UUID);
                 this.delete(uuid);
+            } else if (ACTION_GET.equals(action)){
+                final String uuid = intent.getStringExtra(FileSaveService.EXTRA_UUID);
+                JSONObject jObj = this.get(uuid);
+                if(jObj == null){
+                    Intent intent1 = new Intent()
+                            .setAction(CardActivity.ErrorReceiver.ACTION);
+                    sendBroadcast(intent1);
+                    return;
+                }else{
+                    try{
+                        String source = jObj.getString(EXTRA_SOURCE);
+                        String target = jObj.getString(EXTRA_TARGET);
+                        String encoded = jObj.getString(EXTRA_IMAGE);
+
+                        Intent intent1 = new Intent()
+                                .setAction(CardActivity.SearchReceiver.ACTION)
+                                .putExtra(EXTRA_SOURCE, source)
+                                .putExtra(EXTRA_TARGET, target)
+                                .putExtra(EXTRA_IMAGE, encoded);
+                        sendBroadcast(intent1);
+
+                    }catch (JSONException e){
+                        e.printStackTrace();
+                    }
+                }
             }
         }
+    }
+
+    private JSONObject get(String uuid){
+        try{
+            JSONArray jAry = read();
+            for(int i = 0; i < jAry.length(); i++){
+                JSONObject jsonObject = jAry.getJSONObject(i);
+                if(jsonObject.getString(EXTRA_UUID).equals(uuid)){
+                    return jsonObject;
+                }
+            }
+            return null;
+        }catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     private void delete(String uuid){
@@ -131,6 +185,8 @@ public class FileSaveService extends IntentService {
                 sendBroadcast(intent);
             }
         }catch (JSONException e){
+            JSONArray jsonArray = new JSONArray();
+            this.save(jsonArray);
             Intent intent = new Intent().setAction(MainActivity.EmptyReceiver.ACTION);
             sendBroadcast(intent);
         }finally {

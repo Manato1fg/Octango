@@ -8,22 +8,13 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.app.Activity;
-import android.Manifest;
-import android.content.pm.PackageManager;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.view.View;
 import android.graphics.Typeface;
 
 import android.net.Uri;
-
-import android.annotation.SuppressLint;
-
-import com.theartofdev.edmodo.cropper.CropImage;
-import com.theartofdev.edmodo.cropper.CropImageView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -66,59 +57,18 @@ public class MainActivity extends AppCompatActivity {
 
         this.registerReceivers();
 
-        Intent intent = new Intent(this, FileSaveService.class).setAction(FileSaveService.ACTION_READ);
+        Intent intent = new Intent(this, FileSaveService.class)
+                .setAction(FileSaveService.ACTION_READ);
         this.startService(intent);
     }
 
     public void onAddBtnClick(View view){
-
+        Intent intent = new Intent(this, CardActivity.class)
+                .putExtra(FileSaveService.EXTRA_UUID, "");
+        this.startActivity(intent);
     }
 
 
-    public void onSelectImageClick(View view) {
-        CropImage.activity()
-                .setGuidelines(CropImageView.Guidelines.ON)
-                .setAspectRatio(1, 1)
-                .start(this);
-    }
-
-    @Override
-    @SuppressLint("NewApi")
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // handle result of pick image chooser
-        if (requestCode == CropImage.PICK_IMAGE_CHOOSER_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            Uri imageUri = CropImage.getPickImageResultUri(this, data);
-
-            // For API >= 23 we need to check specifically that we have permissions to read external storage.
-            if (CropImage.isReadExternalStoragePermissionsRequired(this, imageUri)) {
-                // request permissions and handle the result in onRequestPermissionsResult()
-                mCropImageUri = imageUri;
-                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},   CropImage.PICK_IMAGE_PERMISSIONS_REQUEST_CODE);
-            } else {
-                // no permissions required or already granted, can start crop image activity
-                startCropImageActivity(imageUri);
-            }
-        }else if(requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE){
-            CropImage.ActivityResult result = CropImage.getActivityResult(data);
-            Bitmap bitmap = result.getBitmap();
-        }
-    }
-
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        if (requestCode == CropImage.PICK_IMAGE_PERMISSIONS_REQUEST_CODE) {
-            if (mCropImageUri != null && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // required permissions granted, start crop image activity
-                startCropImageActivity(mCropImageUri);
-            } else {
-                Toast.makeText(this, "Cancelling, required permissions are not granted", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    private void startCropImageActivity(Uri imageUri) {
-        CropImage.activity(imageUri)
-                .start(this);
-    }
 
     @Override
     public void onResume(){
@@ -157,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
             String uuid = i.getStringExtra(FileSaveService.EXTRA_UUID);
             Bitmap bitmap = FileSaveService.loadImage(i.getStringExtra(FileSaveService.EXTRA_IMAGE));
 
-            OctangoCardView v = new OctangoCardView(ctx, source, target, uuid, bitmap);
+            OctangoCardView v = new OctangoCardView(MainActivity.this, source, target, uuid, bitmap);
             linearLayout.addView(v);
         }
     }

@@ -4,4 +4,12 @@
     <string name="add">add</string>
     <string name="cancel">cancel</string>
     <string name="notification_title">Octango Manager</string>
+    <string name="title_activity_card" translatable="false">CardActivity</string>
+    <string name="source_text">word</string>
+    <string name="target_text">translated word</string>
+    <string name="image_text">Image</string>
+    <string name="select_image">Select Image</string>
+    <string name="edit_done">Done</string>
+    <string name="fill_inputs">fill all inputs above</string>
+    <string name="error_occurred">An error occurred</string>
 </resources>
