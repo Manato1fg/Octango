@@ -154,7 +154,6 @@ public class CardActivity extends AppCompatActivity {
         public static final String ACTION = "finish_saving_receiver";
         @Override
         public void onReceive(Context ctx, Intent i){
-            Log.d("[Octango Debugger]", "hi6");
             finish();
         }
     }

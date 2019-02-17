@@ -3,7 +3,7 @@
     <string name="empty_message">There is no data yet.</string>
     <string name="add">add</string>
     <string name="cancel">cancel</string>
-    <string name="notification_title">Octango Manager</string>
+    <string name="notification_title">Complete Notification</string>
     <string name="title_activity_card" translatable="false">CardActivity</string>
     <string name="source_text">word</string>
     <string name="target_text">translated word</string>
@@ -12,4 +12,5 @@
     <string name="edit_done">Done</string>
     <string name="fill_inputs">fill all inputs above</string>
     <string name="error_occurred">An error occurred</string>
+    <string name="notification_description">Notified when preparation for registering is done.</string>
 </resources>

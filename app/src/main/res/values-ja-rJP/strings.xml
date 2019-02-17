@@ -4,7 +4,7 @@
     <string name="empty_message">まだデータがありません</string>
     <string name="add">追加する</string>
     <string name="cancel">キャンセル</string>
-    <string name="notification_title">Octango自動登録</string>
+    <string name="notification_title">登録通知</string>
     <string name="source_text">翻訳前の単語</string>
     <string name="target_text">翻訳後の単語</string>
     <string name="image_text">画像</string>
@@ -12,4 +12,5 @@
     <string name="edit_done">完了</string>
     <string name="fill_inputs">全て入力してください</string>
     <string name="error_occurred">エラーが発生しました</string>
+    <string name="notification_description">単語を登録する準備が完了した時に通知されます</string>
 </resources>

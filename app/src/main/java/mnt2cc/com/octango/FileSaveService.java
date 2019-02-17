@@ -1,13 +1,14 @@
 package mnt2cc.com.octango;
 
 import android.app.IntentService;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Base64;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,6 +29,7 @@ public class FileSaveService extends IntentService {
     public static final String EXTRA_TARGET = "mnt2cc.com.octango.extra.TARGET_TEXT";
     public static final String EXTRA_IMAGE = "mnt2cc.com.octango.extra.IMAGE";
     public static final String EXTRA_UUID = "mnt2cc.com.octango.extra.UUID";
+    public static final String EXTRA_FROM_NOTIFICATION = "from.notification";
 
     public static final String KEY_DATA_FILE = "key.data.file";
     public static final String KEY_DATA = "key.data";
@@ -46,13 +48,10 @@ public class FileSaveService extends IntentService {
                 final String target = intent.getStringExtra(FileSaveService.EXTRA_TARGET);
                 final String uuid = intent.getStringExtra(FileSaveService.EXTRA_UUID).equals("") ? UUID.randomUUID().toString() : intent.getStringExtra(FileSaveService.EXTRA_UUID);
                 if(!intent.getStringExtra(FileSaveService.EXTRA_UUID).equals("")){
-                    Log.d("[Octango Debugger]", "hi2");
                     this.delete(uuid);
                 }
-                Log.d("[Octango Debugger]", "hi3");
                 final String image = intent.getStringExtra(FileSaveService.EXTRA_IMAGE);
                 this.appendData(source, target, loadImage(image), uuid);
-                Log.d("[Octango Debugger]", "hi4");
 
                 Intent intent1 = new Intent()
                         .setAction(CardActivity.FinishSavingReceiver.ACTION);
@@ -90,6 +89,11 @@ public class FileSaveService extends IntentService {
                         e.printStackTrace();
                     }
                 }
+            }
+
+            if(intent.getBooleanExtra(EXTRA_FROM_NOTIFICATION, false)){
+                NotificationManagerCompat nm = NotificationManagerCompat.from(getApplicationContext());
+                nm.cancel(ClipboardListenerService.ID);
             }
         }
     }
@@ -167,6 +171,7 @@ public class FileSaveService extends IntentService {
             if (jAry.length() == 0){
                 Intent intent = new Intent().setAction(MainActivity.EmptyReceiver.ACTION);
                 LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(intent);
+                return;
             }
             String source, target, uuid, encoded;
             for(int i = 0; i < jAry.length(); i++){
