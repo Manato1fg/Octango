@@ -40,7 +40,7 @@ public class ClipboardListenerService extends Service {
             @Override
             public void onPrimaryClipChanged(){
                 if(cm.getPrimaryClip() != null){
-                    if (cm.getPrimaryClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)){
+                    if (cm.getPrimaryClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN) || cm.getPrimaryClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_HTML)){
                         CharSequence _text = cm.getPrimaryClip().getItemAt(0).getText();
 
                         if(_text == null) return;
@@ -87,7 +87,7 @@ public class ClipboardListenerService extends Service {
     private void notification(String source, String target){
         String shown = source + "→" + target;
 
-        Toast.makeText(getApplicationContext(), shown, Toast.LENGTH_LONG).show();
+        //Toast.makeText(getApplicationContext(), shown, Toast.LENGTH_LONG).show();
 
         NotificationCompat.Action action1 = new NotificationCompat.Action(
                 R.drawable.add_icon,

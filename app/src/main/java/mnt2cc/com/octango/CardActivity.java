@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 
 import com.theartofdev.edmodo.cropper.CropImage;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
@@ -39,19 +41,35 @@ public class CardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_card);
         Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         this.registerReceivers();
 
         Intent intent = getIntent();
         if(!intent.getStringExtra(FileSaveService.EXTRA_UUID).equals("")){
-            String uuid = intent.getStringExtra(FileSaveService.EXTRA_UUID);
+            final String uuid = intent.getStringExtra(FileSaveService.EXTRA_UUID);
             Intent i = new Intent(this, FileSaveService.class)
                     .setAction(FileSaveService.ACTION_GET)
                     .putExtra(FileSaveService.EXTRA_UUID, uuid);
             this.uuid = uuid;
             this.startService(i);
+
+            ImageView iv = new ImageView(getApplicationContext());
+            iv.setImageResource(R.drawable.garbage);
+            toolbar.addView(iv, new Toolbar.LayoutParams(Toolbar.LayoutParams.WRAP_CONTENT, Toolbar.LayoutParams.WRAP_CONTENT, Gravity.END));
+
+            iv.setClickable(true);
+            iv.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent i2 = new Intent(CardActivity.this, FileSaveService.class)
+                            .setAction(FileSaveService.ACTION_DELETE)
+                            .putExtra(FileSaveService.EXTRA_UUID, uuid);
+                    startService(i2);
+                }
+            });
         }
+
+        setSupportActionBar(toolbar);
     }
 
     public void pickImage(View view){

@@ -36,7 +36,7 @@ public class TranslateClass extends AsyncTask<Integer, Void, String[]> {
     }
 
     @Override
-    protected String[] doInBackground(Integer... _){
+    protected String[] doInBackground(Integer... p){
         String s = this.translate(this.text, this.sourceLang, this.targetLang);
         return new String[]{this.text, s};
     }

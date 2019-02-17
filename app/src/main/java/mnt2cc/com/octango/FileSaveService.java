@@ -64,6 +64,10 @@ public class FileSaveService extends IntentService {
             } else if (ACTION_DELETE.equals(action)) {
                 final String uuid = intent.getStringExtra(FileSaveService.EXTRA_UUID);
                 this.delete(uuid);
+                Intent intent1 = new Intent()
+                        .setAction(CardActivity.FinishSavingReceiver.ACTION);
+
+                sendBroadcast(intent1);
             } else if (ACTION_GET.equals(action)){
                 final String uuid = intent.getStringExtra(FileSaveService.EXTRA_UUID);
                 JSONObject jObj = this.get(uuid);
