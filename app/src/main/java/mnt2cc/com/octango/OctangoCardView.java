@@ -3,6 +3,7 @@ package mnt2cc.com.octango;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -53,6 +54,7 @@ public class OctangoCardView extends LinearLayout {
         }
 
         this.setClickable(true);
+        this.setGravity(Gravity.CENTER);
         final Context c = this.c;
         final String uuid = this.uuid;
         this.setOnClickListener(new OnClickListener() {
