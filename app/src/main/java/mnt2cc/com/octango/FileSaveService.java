@@ -1,7 +1,6 @@
 package mnt2cc.com.octango;
 
 import android.app.IntentService;
-import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -57,8 +56,6 @@ public class FileSaveService extends IntentService {
                         .setAction(CardActivity.FinishSavingReceiver.ACTION);
 
                 sendBroadcast(intent1);
-            } else if (ACTION_NOTHING.equals(action)) {
-                return;
             } else if (ACTION_READ.equals(action)) {
                 updateUI();
             } else if (ACTION_DELETE.equals(action)) {
